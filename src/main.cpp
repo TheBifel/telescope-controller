@@ -1,69 +1,28 @@
-#include <Arduino.h>
-#include <AccelStepper.h>
+#include "Arduino.h"
+#include "TMC.h"
+#include "ElrsSpeedController.h"
 
-#define S1_PIN 12
-#define S2_PIN 11
-#define KEY_PIN 10
-#define STEP_PIN 3
-#define DIR_PIN 2
-#define MS1_PIN 7
-#define MS2_PIN 6
+#define PIN_RX 16
+#define PIN_TX 18
 
-// Steps per revolution for the motor
-const float stepsPerRevolution = 200;
-int microstepSetting = 2;
-float desiredRPM = 0;
-
-AccelStepper stepper(AccelStepper::DRIVER, STEP_PIN, DIR_PIN);
-
-int lastS1State = HIGH;
-int encoderDirection = 0;  // 1 = CW, -1 = CCW
-unsigned long lastTurnTime = 0;
+TMC stepper1(5, 3, 9, 7, 2); // stepPin, directionPin, ms1Pin, ms2Pin, microstep
+TMC stepper2(39, 37, 35, 33, 2); // stepPin, directionPin, ms1Pin, ms2Pin, microstep
+ElrsSpeedController elrs(PIN_RX, PIN_TX);
 
 void setup() {
-  Serial.begin(115200);
-  pinMode(S1_PIN, INPUT_PULLUP);
-  pinMode(S2_PIN, INPUT_PULLUP);
-  pinMode(KEY_PIN, INPUT_PULLUP);
-  pinMode(MS1_PIN, OUTPUT);
-  pinMode(MS2_PIN, OUTPUT);
-
-  digitalWrite(MS1_PIN, HIGH);
-  digitalWrite(MS2_PIN, LOW);
-
-  float MaxRPM = 300;
-  float Max_Speed_StepsPerSec = microstepSetting * stepsPerRevolution * MaxRPM / 60;
-  stepper.setMaxSpeed(Max_Speed_StepsPerSec);
+    Serial.begin(115200);
 }
 
 void loop() {
-  int s1 = digitalRead(S1_PIN);
-  int s2 = digitalRead(S2_PIN);
-  int key = digitalRead(KEY_PIN);
-  unsigned long currentTime = millis();
+    elrs.refresh();
+    float desiredRPM1 = elrs.getRpmForChannel(1, stepper1.getMaxRPM());
+    float desiredRPM2 = elrs.getRpmForChannel(2, stepper2.getMaxRPM());
 
-  int stepSize = (key == LOW) ? 10 : 1; // If button is pressed, change by 10 instead of 1
+    Serial.print("Ch1 PWM to RPM: ");
+    Serial.print(desiredRPM1);
+    Serial.print(" Ch2 PWM to RPM: ");
+    Serial.println(desiredRPM2);
 
-  if (currentTime - lastTurnTime > 5) {
-    if (s1 != lastS1State) {
-      lastTurnTime = currentTime;
-      if (s1 == LOW) {
-        encoderDirection = (s2 == HIGH) ? 1 : -1;
-        desiredRPM += encoderDirection * stepSize;
-        Serial.print("Speed: ");
-        Serial.println(desiredRPM);
-      }
-    }
-  }
-
-  lastS1State = s1;
-
-  if (desiredRPM == 0) {
-    stepper.setSpeed(0);
-  } else {
-    float speedStepsPerSec = (microstepSetting * stepsPerRevolution * desiredRPM) / 60.0;
-    stepper.setSpeed(speedStepsPerSec);
-  }
-
-  stepper.runSpeed();
+    stepper1.setSpeed(desiredRPM1);
+    stepper2.setSpeed(desiredRPM2);
 }
