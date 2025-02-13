@@ -6,7 +6,7 @@
 
 class TMC {
 public:
-    TMC(int stepPin, int directionPin, int ms1Pin, int ms2Pin, int microstep);
+    TMC(int stepPin, int directionPin, int ms1Pin, int ms2Pin);
     void setSpeed(float desiredRPM);
     void configureMicrostepping(int microstep); //2, 4, 8, 16
     void setMaxRPM(int maxRPM);
@@ -14,7 +14,7 @@ public:
 
 private:
     int ms1Pin, ms2Pin;
-    int microstepMultiplier;
+    int microstepMultiplier = 2;
     int maxRPM;
     AccelStepper stepper;
 };

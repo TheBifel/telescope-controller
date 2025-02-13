@@ -5,12 +5,16 @@
 #define PIN_RX 16
 #define PIN_TX 18
 
-TMC stepper1(5, 3, 9, 7, 2); // stepPin, directionPin, ms1Pin, ms2Pin, microstep
-TMC stepper2(39, 37, 35, 33, 2); // stepPin, directionPin, ms1Pin, ms2Pin, microstep
+TMC stepper1(5, 3, 9, 7); // stepPin, directionPin, ms1Pin, ms2Pin, microstep
+TMC stepper2(39, 37, 33, 35); // stepPin, directionPin, ms1Pin, ms2Pin, microstep
 ElrsSpeedController elrs(PIN_RX, PIN_TX);
 
 void setup() {
     Serial.begin(115200);
+    stepper1.setMaxRPM(300);
+    stepper2.setMaxRPM(300);
+    stepper1.configureMicrostepping(2);
+    stepper2.configureMicrostepping(2);
 }
 
 void loop() {

@@ -1,13 +1,11 @@
 #include "TMC.h"
 
-TMC::TMC(int stepPin, int directionPin, int ms1Pin, int ms2Pin, int microstep)
+TMC::TMC(int stepPin, int directionPin, int ms1Pin, int ms2Pin)
     : stepper(AccelStepper::DRIVER, stepPin, directionPin),
       ms1Pin(ms1Pin), ms2Pin(ms2Pin) {
 
     pinMode(ms1Pin, OUTPUT);
     pinMode(ms2Pin, OUTPUT);
-
-    configureMicrostepping(microstep);
 
     setMaxRPM(400);
 }
@@ -24,10 +22,10 @@ void TMC::configureMicrostepping(int microstep) {
     microstepMultiplier = microstep;
 
     switch (microstep) {
-        case 2: digitalWrite(ms1Pin, LOW); digitalWrite(ms2Pin, HIGH); break;
-        case 4: digitalWrite(ms1Pin, HIGH); digitalWrite(ms2Pin, LOW); break;
-        case 8: digitalWrite(ms1Pin, LOW); digitalWrite(ms2Pin, LOW); break;
-        case 16: digitalWrite(ms1Pin, HIGH); digitalWrite(ms2Pin, HIGH); break;
+        case 2: digitalWrite(ms1Pin, HIGH); digitalWrite(ms2Pin, LOW); break;//10
+        case 4: digitalWrite(ms1Pin, LOW); digitalWrite(ms2Pin, HIGH); break;//20sec
+        case 8: digitalWrite(ms1Pin, LOW); digitalWrite(ms2Pin, LOW); break;//20
+        case 16: digitalWrite(ms1Pin, HIGH); digitalWrite(ms2Pin, HIGH); break;//80
         default: digitalWrite(ms1Pin, HIGH); digitalWrite(ms2Pin, LOW); microstepMultiplier = 2; break;
     }
 }
